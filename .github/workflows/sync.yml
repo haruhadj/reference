@@ -1,38 +1,37 @@
-name: Mirror Fork with Upstream
+name: Mirror upstream
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
-  workflow_dispatch:
+    - cron: '0 */6 * * *' # every 6 hours
+  workflow_dispatch: # allow manual run
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout your fork
         uses: actions/checkout@v4
         with:
-          ref: main
-          persist-credentials: false
+          persist-credentials: false # we'll use a PAT instead
+          fetch-depth: 0
 
-      - name: Configure Git
+      - name: Set up Git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "haruhadj-bot"
+          git config user.email "haruhadj@gmail.com"
 
-      - name: Add upstream and fetch
+      - name: Add upstream remote
         run: |
           git remote add upstream https://github.com/Fechin/reference.git
           git fetch upstream
 
-      - name: Reset to upstream
+      - name: Hard reset main to match upstream
         run: |
           git checkout main
           git reset --hard upstream/main
 
-      - name: Push changes to fork
+      - name: Push to your fork
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.PAT }}
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/haruhadj/reference.git
-          git push origin main --force
+          git push https://haruhadj:${TOKEN}@github.com/haruhadj/reference.git main --force
